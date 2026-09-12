@@ -10,7 +10,10 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from ..db import get_db, User
+try:
+    from ..db import get_db, User
+except (ImportError, ValueError):
+    from db import get_db, User
 import os
 
 # ── Config ─────────────────────────────────────────────────────────────────
@@ -30,6 +33,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 # ── JWT ────────────────────────────────────────────────────────────────────
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -52,8 +57,12 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     payload = decode_token(credentials.credentials)
-    user_id: int = payload.get("sub")
-    if user_id is None:
+    sub = payload.get("sub")
+    if sub is None:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+    try:
+        user_id = int(sub)
+    except (ValueError, TypeError):
         raise HTTPException(status_code=401, detail="Invalid token payload")
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_active:

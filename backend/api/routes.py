@@ -6,7 +6,10 @@ All API route handlers — auth + transactions
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..db import get_db, User, Transaction
+try:
+    from ..db import get_db, User, Transaction
+except (ImportError, ValueError):
+    from db import get_db, User, Transaction
 from .auth import hash_password, verify_password, create_access_token, get_current_user
 from .schemas import (
     RegisterRequest, LoginRequest, TokenResponse, UserResponse,

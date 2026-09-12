@@ -8,6 +8,14 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import random
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 # ── Reproducibility ────────────────────────────────────────────────────────
 np.random.seed(42)
@@ -128,10 +136,13 @@ if __name__ == "__main__":
     # Shuffle
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-    out_path = "../data/upi_transactions.csv"
+    from pathlib import Path
+    data_dir = Path(__file__).resolve().parent.parent / "data"
+    data_dir.mkdir(exist_ok=True)
+    out_path = data_dir / "upi_transactions.csv"
     df.to_csv(out_path, index=False)
 
-    print(f"✅ Dataset saved to {out_path}")
+    print(f"[OK] Dataset saved to {out_path}")
     print(f"   Shape  : {df.shape}")
     print(f"   Fraud  : {df['is_fraud'].sum():,}  ({df['is_fraud'].mean()*100:.1f}%)")
     print(f"   Legit  : {(df['is_fraud']==0).sum():,}")

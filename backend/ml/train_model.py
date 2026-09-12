@@ -7,7 +7,15 @@ Outputs: ../models/fraud_model.pkl  +  ../models/feature_columns.pkl
 import pandas as pd
 import numpy as np
 import joblib
+import sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
 from sklearn.metrics import (
@@ -19,8 +27,9 @@ from imblearn.over_sampling import SMOTE
 from xgboost import XGBClassifier
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-DATA_PATH   = Path("../data/upi_transactions.csv")
-MODELS_DIR  = Path("../models")
+BASE_DIR    = Path(__file__).resolve().parent.parent
+DATA_PATH   = BASE_DIR / "data" / "upi_transactions.csv"
+MODELS_DIR  = BASE_DIR / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
 MODEL_PATH    = MODELS_DIR / "fraud_model.pkl"
@@ -99,7 +108,7 @@ print("\nTop Feature Importances:")
 importances = model.feature_importances_
 feat_imp = sorted(zip(FEATURES, importances), key=lambda x: x[1], reverse=True)
 for feat, imp in feat_imp[:10]:
-    bar = "█" * int(imp * 200)
+    bar = "=" * int(imp * 200)
     print(f"  {feat:<30} {imp:.4f}  {bar}")
 
 # ── Save Model ─────────────────────────────────────────────────────────────
@@ -107,7 +116,7 @@ joblib.dump(model,    MODEL_PATH)
 joblib.dump(scaler,   SCALER_PATH)
 joblib.dump(FEATURES, FEATURES_PATH)
 
-print(f"\n✅ Model saved    → {MODEL_PATH}")
-print(f"✅ Scaler saved   → {SCALER_PATH}")
-print(f"✅ Features saved → {FEATURES_PATH}")
+print(f"\n[OK] Model saved    -> {MODEL_PATH}")
+print(f"[OK] Scaler saved   -> {SCALER_PATH}")
+print(f"[OK] Features saved -> {FEATURES_PATH}")
 print("\nPhase 1 complete. Ready for Phase 2 (FastAPI backend).")
