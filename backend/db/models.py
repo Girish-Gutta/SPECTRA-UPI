@@ -46,8 +46,10 @@ class Transaction(Base):
     device_count    = Column(Integer, default=1)
 
     # ML output
-    is_fraud        = Column(Boolean, nullable=False)
-    fraud_score     = Column(Float, nullable=False)        # 0.0–1.0 confidence
+    is_fraud             = Column(Boolean, nullable=False)
+    fraud_score          = Column(Float, nullable=False)
+    matched_pattern_id   = Column(String(10), nullable=True)
+    matched_pattern_name = Column(String(100), nullable=True)
 
     created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 

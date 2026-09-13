@@ -1,0 +1,270 @@
+{
+  "patterns": [
+    {
+      "id": "FP-001",
+      "name": "SIM Swap Fraud",
+      "risk_level": "CRITICAL",
+      "icon": "sim",
+      "short_desc": "Attacker duplicates your SIM to intercept OTPs and drain accounts",
+      "full_desc": "The fraudster impersonates you to your telecom provider and gets a new SIM issued for your number. All incoming OTPs now go to them. They reset your UPI PIN and initiate large transfers before you notice your phone has lost signal.",
+      "how_it_happens": [
+        "Fraudster collects your personal info from social media or data breaches",
+        "Calls telecom pretending to be you, reports SIM lost",
+        "New SIM issued — your phone loses signal",
+        "They receive all OTPs, reset UPI PIN, drain account"
+      ],
+      "warning_signs": [
+        "Your phone suddenly loses network signal",
+        "You stop receiving calls/SMS unexpectedly",
+        "You get OTP messages you didn't request",
+        "Unknown login alerts from your bank"
+      ],
+      "ml_signal_weights": {
+        "new_device": 0.35,
+        "location_change": 0.30,
+        "high_amount": 0.20,
+        "new_recipient": 0.15
+      },
+      "match_conditions": {
+        "new_device": true,
+        "location_change": true,
+        "amount_threshold": 10000
+      },
+      "immediate_action": "Call your telecom operator immediately to verify SIM activity. Block UPI via your bank's 24x7 helpline.",
+      "report_to": ["Bank fraud helpline", "Telecom provider", "Cyber Crime Portal: cybercrime.gov.in", "National Helpline: 1930"],
+      "prevention": "Enable SIM lock with your telecom. Set a UPI transaction limit. Use a separate number for banking."
+    },
+    {
+      "id": "FP-002",
+      "name": "Fake Collect Request",
+      "risk_level": "CRITICAL",
+      "icon": "collect",
+      "short_desc": "Fraudster sends a payment request disguised as money you will receive",
+      "full_desc": "The most common UPI fraud. The fraudster sends a 'collect' request — you see a notification that looks like someone is sending you money. When you enter your PIN, you are actually APPROVING A PAYMENT OUT, not receiving anything.",
+      "how_it_happens": [
+        "You list an item for sale or post about needing money",
+        "Fraudster contacts you as a 'buyer' or 'helper'",
+        "They send a UPI collect request instead of paying you",
+        "You enter PIN thinking you are receiving — you just sent them money"
+      ],
+      "warning_signs": [
+        "Someone asks you to 'approve' a payment to receive money",
+        "You are asked to enter your PIN to get a refund",
+        "The payment notification says 'Pay' not 'Receive'"
+      ],
+      "ml_signal_weights": {
+        "new_recipient": 0.40,
+        "amount_anomaly": 0.30,
+        "high_frequency": 0.30
+      },
+      "match_conditions": {
+        "new_recipient": true,
+        "failed_attempts": 0
+      },
+      "immediate_action": "NEVER enter your UPI PIN to receive money. You only enter PIN to SEND. If you already did, call your bank immediately to freeze the account.",
+      "report_to": ["Bank helpline immediately", "NPCI Dispute Portal: npci.org.in", "National Helpline: 1930"],
+      "prevention": "Golden Rule: You only enter UPI PIN to SEND money. No exceptions. Ever."
+    },
+    {
+      "id": "FP-003",
+      "name": "Fake QR Code Scam",
+      "risk_level": "HIGH",
+      "icon": "qr",
+      "short_desc": "Fraudster replaces legitimate QR codes or sends fake ones via WhatsApp",
+      "full_desc": "Physical QR codes at shops are replaced with the fraudster's QR. Or a buyer/seller sends you a QR code claiming it is for 'verification' or 'refund'. Scanning and paying completes the fraud.",
+      "how_it_happens": [
+        "Fraudster sticks their QR code over a merchant's legitimate QR",
+        "Or sends a QR via WhatsApp/SMS claiming to be a refund",
+        "Victim scans and pays, money goes to fraudster",
+        "Merchant never receives payment"
+      ],
+      "warning_signs": [
+        "QR code at a merchant looks tampered or is a sticker on top",
+        "Someone sends you a QR to 'receive' a refund",
+        "Recipient name after scanning is unfamiliar"
+      ],
+      "ml_signal_weights": {
+        "new_recipient": 0.45,
+        "round_amount": 0.30,
+        "odd_hours": 0.25
+      },
+      "match_conditions": {
+        "new_recipient": true
+      },
+      "immediate_action": "Do not proceed with the payment. Verify recipient name. Contact the merchant directly via a known number.",
+      "report_to": ["Bank helpline", "Merchant directly", "National Helpline: 1930"],
+      "prevention": "Always check recipient name after scanning QR. Never trust QR codes sent via WhatsApp or SMS."
+    },
+    {
+      "id": "FP-004",
+      "name": "OTP / Vishing Fraud",
+      "risk_level": "HIGH",
+      "icon": "otp",
+      "short_desc": "Fraudster calls as bank agent and tricks you into sharing OTP or PIN",
+      "full_desc": "You receive a call from someone claiming to be from your bank, NPCI, or government. They create urgency — your account will be blocked, your KYC expired, you won a prize. They ask for your OTP or UPI PIN to 'verify' or 'process' something.",
+      "how_it_happens": [
+        "You receive an urgent call from a 'bank official'",
+        "They know your name, partial account number (from data leaks)",
+        "They create panic — 'your account will be blocked in 2 hours'",
+        "They ask for OTP 'to verify your identity'",
+        "Once shared, they complete a transaction"
+      ],
+      "warning_signs": [
+        "Unsolicited call from 'bank' or 'NPCI'",
+        "Extreme urgency and panic creation",
+        "They ask for OTP, PIN, or full card number",
+        "They ask you to make a 'test transaction'"
+      ],
+      "ml_signal_weights": {
+        "failed_attempts": 0.40,
+        "multiple_devices": 0.30,
+        "new_recipient": 0.30
+      },
+      "match_conditions": {
+        "failed_attempts": 1
+      },
+      "immediate_action": "Hang up immediately. Your bank will NEVER ask for OTP or PIN. Call your bank's official number from the back of your card to verify.",
+      "report_to": ["Bank fraud helpline", "Telecom to check call origin", "National Helpline: 1930", "cybercrime.gov.in"],
+      "prevention": "No bank, NPCI, or government official ever asks for OTP or PIN. This is an absolute rule."
+    },
+    {
+      "id": "FP-005",
+      "name": "OLX / Marketplace Fraud",
+      "risk_level": "HIGH",
+      "icon": "marketplace",
+      "short_desc": "Fake buyers/sellers on OLX, Facebook Marketplace, or classified sites",
+      "full_desc": "As a seller, you receive a 'payment confirmation' screenshot but money never actually arrives. As a buyer, you pay advance for an item that is never delivered. Military personnel are often impersonated as buyers.",
+      "how_it_happens": [
+        "You post an item for sale on OLX/social media",
+        "Buyer contacts you, agrees to price, asks for bank/UPI details",
+        "Sends a fake payment screenshot from an edited app",
+        "Pressures you to ship before you check your balance",
+        "Or asks you to pay 'delivery charges' via UPI link"
+      ],
+      "warning_signs": [
+        "Buyer insists on paying via UPI link instead of standard transfer",
+        "They send a payment 'confirmation' screenshot",
+        "They pressure you to ship before you check your account",
+        "The amount in your account doesn't match the screenshot"
+      ],
+      "ml_signal_weights": {
+        "new_recipient": 0.40,
+        "large_round_amount": 0.35,
+        "weekend": 0.25
+      },
+      "match_conditions": {
+        "new_recipient": true,
+        "amount_threshold": 5000
+      },
+      "immediate_action": "Always verify money has arrived in your actual bank account before shipping anything. Do not trust screenshots.",
+      "report_to": ["National Helpline: 1930", "cybercrime.gov.in", "Local police cybercrime cell"],
+      "prevention": "Check actual bank balance. Ship only after confirmed credit. Meet in person for high-value transactions."
+    },
+    {
+      "id": "FP-006",
+      "name": "KYC Expiry / Account Block Scam",
+      "risk_level": "HIGH",
+      "icon": "kyc",
+      "short_desc": "Fraudster claims your KYC expired and account will be blocked",
+      "full_desc": "You receive an SMS or WhatsApp message claiming your bank/UPI KYC has expired and your account will be blocked within hours. You are directed to a link or asked to call a number, where they collect your credentials.",
+      "how_it_happens": [
+        "SMS/WhatsApp: 'Your KYC expired. Click link or account blocked'",
+        "Link leads to a fake bank website that looks identical to real one",
+        "You enter your credentials — they now have your login",
+        "Or you are asked to send a 'verification amount' of ₹1"
+      ],
+      "warning_signs": [
+        "Urgency: 'Account will be blocked in 24 hours'",
+        "Link in SMS/WhatsApp to complete KYC",
+        "Asked to make a ₹1 test payment",
+        "Asked to download an app to complete KYC"
+      ],
+      "ml_signal_weights": {
+        "failed_attempts": 0.45,
+        "new_device": 0.35,
+        "unusual_hour": 0.20
+      },
+      "match_conditions": {
+        "failed_attempts": 2
+      },
+      "immediate_action": "Do not click any link. KYC is never done via UPI payment or SMS links. Visit your bank branch directly.",
+      "report_to": ["Bank branch directly", "National Helpline: 1930", "cybercrime.gov.in"],
+      "prevention": "KYC is done in-person at a bank branch or through the bank's official verified app only."
+    },
+    {
+      "id": "FP-007",
+      "name": "Advance Fee / Lottery Fraud",
+      "risk_level": "MEDIUM",
+      "icon": "lottery",
+      "short_desc": "Promise of large reward requires a small 'processing fee' first",
+      "full_desc": "You are told you have won a lottery, a job, a loan, or a government scheme. To claim it, you must first pay a small 'processing fee', 'GST', 'registration', or 'security deposit'. The fee is collected, the reward never materialises.",
+      "how_it_happens": [
+        "Message: 'You won ₹50 lakh in KBC lottery!'",
+        "Or: 'Easy work from home, earn ₹50,000/month, pay ₹500 registration'",
+        "Or: 'Your loan approved, pay 2% processing fee first'",
+        "Small payment made, fraudster disappears or asks for more"
+      ],
+      "warning_signs": [
+        "Unsolicited win or offer that seems too good",
+        "Any upfront payment required to receive a benefit",
+        "Payment via UPI to an unknown individual (not a company)",
+        "Urgency: 'Offer expires in 2 hours'"
+      ],
+      "ml_signal_weights": {
+        "small_round_amount": 0.40,
+        "new_recipient": 0.40,
+        "high_frequency": 0.20
+      },
+      "match_conditions": {
+        "new_recipient": true,
+        "amount_threshold": 2000,
+        "is_small": true
+      },
+      "immediate_action": "Stop all payments. Legitimate lotteries, employers, and lenders never ask for upfront fees.",
+      "report_to": ["National Helpline: 1930", "cybercrime.gov.in", "Local police"],
+      "prevention": "If you have to pay to receive money, it is always fraud. No exceptions."
+    },
+    {
+      "id": "FP-008",
+      "name": "Remote Access / Screen Share Fraud",
+      "risk_level": "CRITICAL",
+      "icon": "remote",
+      "short_desc": "Fraudster installs AnyDesk/TeamViewer and controls your phone directly",
+      "full_desc": "Fraudster calls as 'bank tech support' and convinces you to install AnyDesk, TeamViewer, or QuickSupport. Once installed, they have full control of your phone — they can see your OTPs, open your banking apps, and initiate transactions while you watch.",
+      "how_it_happens": [
+        "Call from 'tech support' about a problem with your account/phone",
+        "They ask you to install AnyDesk or similar app",
+        "You share the access code — they now control your screen",
+        "They open your UPI app, send money to multiple accounts",
+        "They may ask you to open your banking app 'to fix the issue'"
+      ],
+      "warning_signs": [
+        "Any request to install AnyDesk, TeamViewer, QuickSupport",
+        "Request to share your screen",
+        "Being asked to open your banking app while on a call",
+        "Transactions you did not initiate appearing on screen"
+      ],
+      "ml_signal_weights": {
+        "multiple_devices": 0.40,
+        "location_change": 0.30,
+        "high_amount": 0.20,
+        "rapid_sequence": 0.10
+      },
+      "match_conditions": {
+        "device_count": 3,
+        "location_change": true,
+        "high_amount": true
+      },
+      "immediate_action": "IMMEDIATELY uninstall AnyDesk/TeamViewer. Turn off mobile data/WiFi. Call bank helpline 1930 to freeze account. File complaint at cybercrime.gov.in.",
+      "report_to": ["Bank helpline: 1930 IMMEDIATELY", "cybercrime.gov.in", "Local police cybercrime cell"],
+      "prevention": "No legitimate bank or tech support ever asks you to install remote access software. Hang up."
+    }
+  ],
+  "helplines": {
+    "national_cyber_helpline": "1930",
+    "npci_helpline": "1800-120-1740",
+    "rbi_ombudsman": "14448",
+    "cyber_crime_portal": "https://cybercrime.gov.in",
+    "npci_dispute": "https://www.npci.org.in"
+  }
+}

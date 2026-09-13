@@ -2,26 +2,36 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { txAPI } from '../lib/api'
-import { ShieldCheck, AlertTriangle, TrendingUp, Activity, ArrowRight, RefreshCw } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import {
+  ShieldCheck, AlertTriangle, TrendingUp, Activity,
+  ArrowRight, RefreshCw, ShieldAlert, XCircle
+} from 'lucide-react'
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts'
 import VerdictBadge from '../components/VerdictBadge'
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [txs, setTxs]         = useState([])
+  const [txs, setTxs]       = useState([])
+  const [stats, setStats]   = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    txAPI.history(100).then(r => setTxs(r.data)).catch(() => {}).finally(() => setLoading(false))
+    Promise.all([
+      txAPI.history(100).then(r => setTxs(r.data)),
+      txAPI.stats().then(r => setStats(r.data)).catch(() => {}),
+    ]).finally(() => setLoading(false))
   }, [])
 
-  const total    = txs.length
-  const frauds   = txs.filter(t => t.verdict === 'FRAUD').length
-  const safe     = txs.filter(t => t.verdict === 'SAFE').length
-  const suspects = txs.filter(t => t.verdict === 'SUSPICIOUS').length
-  const totalAmt = txs.reduce((s, t) => s + t.amount, 0)
+  const total    = stats?.total_transactions ?? txs.length
+  const frauds   = stats?.fraud_count        ?? txs.filter(t => t.verdict === 'FRAUD').length
+  const safe     = stats?.safe_count         ?? txs.filter(t => t.verdict === 'SAFE').length
+  const suspects = stats?.suspicious_count   ?? txs.filter(t => t.verdict === 'SUSPICIOUS').length
+  const atRisk   = stats?.total_amount_at_risk ?? 0
 
-  // Last 7 days chart data
+  // 7-day chart
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const label = d.toLocaleDateString('en-IN', { weekday: 'short' })
@@ -36,11 +46,12 @@ export default function Dashboard() {
     { name: 'Fraud',      value: frauds,   color: '#ef4444' },
   ].filter(d => d.value > 0)
 
-  const stats = [
-    { label: 'Total Checks',    value: total,                          icon: Activity,      color: 'text-brand-400',  bg: 'bg-brand-600/10' },
-    { label: 'Fraud Detected',  value: frauds,                         icon: AlertTriangle, color: 'text-red-400',    bg: 'bg-red-500/10' },
-    { label: 'Safe Transactions',value: safe,                          icon: ShieldCheck,   color: 'text-green-400',  bg: 'bg-green-500/10' },
-    { label: 'Total Amount',    value: `₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  const statCards = [
+    { label: 'Total Checks',      value: total,                        icon: Activity,      color: 'text-brand-400',   bg: 'bg-brand-600/10' },
+    { label: 'Fraud Detected',    value: frauds,                       icon: XCircle,       color: 'text-red-400',     bg: 'bg-red-500/10' },
+    { label: 'Safe Transactions', value: safe,                         icon: ShieldCheck,   color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Amount at Risk',    value: atRisk > 0 ? `₹${atRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : '₹0',
+      icon: TrendingUp, color: 'text-red-400', bg: 'bg-red-500/10' },
   ]
 
   if (loading) return (
@@ -49,14 +60,14 @@ export default function Dashboard() {
     </div>
   )
 
+  const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold">
-            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, {user?.full_name?.split(' ')[0]} 👋
-          </h1>
+          <h1 className="text-2xl font-bold">Good {greeting}, {user?.full_name?.split(' ')[0]} 👋</h1>
           <p className="text-white/40 mt-1 text-sm">Here's your fraud detection overview</p>
         </div>
         <Link to="/check" className="btn-primary flex items-center gap-2">
@@ -64,9 +75,9 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, color, bg }) => (
+        {statCards.map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="card">
             <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center mb-3`}>
               <Icon size={20} className={color} />
@@ -77,13 +88,28 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts row */}
+      {/* Fraud rate alert */}
+      {total > 0 && frauds > 0 && (
+        <div className="flex items-center gap-3 bg-red-950/30 border border-red-500/20 rounded-xl px-4 py-3">
+          <AlertTriangle size={16} className="text-red-400 shrink-0" />
+          <span className="text-sm text-white/70">
+            <strong className="text-red-400">{((frauds / total) * 100).toFixed(1)}%</strong> fraud rate detected across your checks.
+            {stats?.top_fraud_patterns?.[0] && (
+              <span> Most common pattern: <strong className="text-white">{stats.top_fraud_patterns[0].name}</strong></span>
+            )}
+          </span>
+          <Link to="/awareness" className="ml-auto text-xs text-brand-400 hover:text-brand-300 whitespace-nowrap flex items-center gap-1">
+            Learn more <ArrowRight size={12} />
+          </Link>
+        </div>
+      )}
+
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activity chart */}
         <div className="card lg:col-span-2">
-          <h2 className="font-semibold mb-5 text-white/80">Transaction Activity (Last 7 Days)</h2>
+          <h2 className="font-semibold mb-5 text-white/80">Activity (Last 7 Days)</h2>
           {total === 0
-            ? <div className="h-48 flex items-center justify-center text-white/30 text-sm">No data yet — start checking transactions</div>
+            ? <div className="h-48 flex items-center justify-center text-white/30 text-sm">No data yet</div>
             : <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={last7}>
                   <defs>
@@ -106,7 +132,6 @@ export default function Dashboard() {
           }
         </div>
 
-        {/* Pie chart */}
         <div className="card">
           <h2 className="font-semibold mb-5 text-white/80">Risk Distribution</h2>
           {total === 0
@@ -135,6 +160,31 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Top fraud patterns seen */}
+      {stats?.top_fraud_patterns?.length > 0 && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-white/80 flex items-center gap-2">
+              <ShieldAlert size={16} className="text-red-400" /> Fraud Patterns Detected
+            </h2>
+            <Link to="/awareness" className="text-sm text-brand-400 hover:text-brand-300 flex items-center gap-1">
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {stats.top_fraud_patterns.map(p => (
+              <div key={p.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                <div>
+                  <div className="text-sm font-medium">{p.name}</div>
+                  <div className="text-xs text-white/30">{p.id}</div>
+                </div>
+                <span className="text-sm font-bold text-red-400">{p.count}x detected</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recent transactions */}
       <div className="card">
         <div className="flex items-center justify-between mb-5">
@@ -149,7 +199,7 @@ export default function Dashboard() {
               <p>No transactions checked yet.</p>
               <Link to="/check" className="text-brand-400 text-sm mt-2 inline-block">Run your first check →</Link>
             </div>
-          : <div className="space-y-2">
+          : <div className="space-y-1">
               {txs.slice(0, 5).map(tx => (
                 <div key={tx.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                   <div className="flex items-center gap-3">
@@ -158,10 +208,13 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <div className="font-medium text-sm">{tx.platform}</div>
-                      <div className="text-xs text-white/30">{tx.tx_date} · {tx.tx_time}</div>
+                      <div className="text-xs text-white/30">
+                        {tx.tx_date} · {tx.tx_time}
+                        {tx.matched_pattern_name && <span className="ml-1 text-red-400"> · {tx.matched_pattern_name}</span>}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className="font-semibold text-sm">₹{tx.amount.toLocaleString('en-IN')}</span>
                     <VerdictBadge verdict={tx.verdict} />
                   </div>

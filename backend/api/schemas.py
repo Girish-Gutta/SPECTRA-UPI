@@ -1,6 +1,5 @@
 """
-backend/api/schemas.py
-Pydantic models for request validation and response serialization
+backend/api/schemas.py  (v2 — beast mode)
 """
 
 from pydantic import BaseModel, EmailStr, field_validator
@@ -9,7 +8,7 @@ from datetime import datetime
 import re
 
 
-# ── Auth Schemas ───────────────────────────────────────────────────────────
+# ── Auth ───────────────────────────────────────────────────────────────────
 
 class RegisterRequest(BaseModel):
     full_name: str
@@ -41,7 +40,7 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    identifier: str   # email or phone
+    identifier: str
     password: str
 
 
@@ -59,21 +58,27 @@ class UserResponse(BaseModel):
     email: str
     phone: str
     created_at: datetime
-
     model_config = {"from_attributes": True}
 
 
-# ── Transaction Schemas ────────────────────────────────────────────────────
+# ── Transaction — request ──────────────────────────────────────────────────
 
 class TransactionRequest(BaseModel):
     amount: float
     platform: str
-    tx_date: str           # DD/MM/YYYY
-    tx_time: str           # HH:MM
-    location_change: bool = False
-    new_recipient: bool   = True
-    failed_attempts: int  = 0
-    device_count: int     = 1
+    tx_date: str
+    tx_time: str
+    # Behavioral context
+    location_change: bool  = False
+    new_recipient: bool    = True
+    failed_attempts: int   = 0
+    device_count: int      = 1
+    txn_freq_1h: int       = 0
+    txn_freq_24h: int      = 0
+    # Behavioral stats (computed by frontend from history or defaulted)
+    amount_z_score: float       = 0.0
+    amount_vs_recent: float     = 0.0
+    is_preferred_platform: bool = True
 
     @field_validator("amount")
     @classmethod
@@ -81,15 +86,14 @@ class TransactionRequest(BaseModel):
         if v <= 0:
             raise ValueError("Amount must be positive")
         if v > 200000:
-            raise ValueError("Amount exceeds UPI transaction limit")
+            raise ValueError("Exceeds UPI limit")
         return round(v, 2)
 
     @field_validator("platform")
     @classmethod
     def validate_platform(cls, v):
-        allowed = {"Google Pay", "PhonePe", "Paytm", "BHIM"}
-        if v not in allowed:
-            raise ValueError(f"Platform must be one of: {', '.join(allowed)}")
+        if v not in {"Google Pay", "PhonePe", "Paytm", "BHIM"}:
+            raise ValueError("Invalid platform")
         return v
 
     @field_validator("tx_date")
@@ -103,19 +107,46 @@ class TransactionRequest(BaseModel):
     @classmethod
     def validate_time(cls, v):
         if not re.match(r"^\d{2}:\d{2}$", v):
-            raise ValueError("Time must be HH:MM (24-hour)")
+            raise ValueError("Time must be HH:MM")
         return v
 
 
-class FraudPredictionResponse(BaseModel):
+# ── Transaction — beast-mode response ─────────────────────────────────────
+
+class AnomalyReason(BaseModel):
+    factor: str
+    detail: str
+
+
+class FullFraudAnalysis(BaseModel):
     transaction_id: int
-    is_fraud: bool
-    fraud_score: float          # 0.0–1.0
-    confidence_pct: float       # human-readable percentage
-    verdict: str                # "SAFE" | "SUSPICIOUS" | "FRAUD"
-    top_risk_factors: list[str]
     amount: float
     platform: str
+
+    # Core verdict
+    is_fraud: bool
+    fraud_score: float
+    confidence_pct: float
+    verdict: str           # SAFE | SUSPICIOUS | FRAUD
+    risk_level: str        # LOW | MEDIUM | HIGH | CRITICAL
+
+    # Behavioral intelligence
+    behavior_flags: list[str]
+    anomaly_reasons: list[AnomalyReason]
+    feature_contributions: dict
+
+    # Pattern matching
+    matched_pattern_id: Optional[str]
+    matched_pattern_name: Optional[str]
+    pattern_similarity: float
+
+    # Education & awareness
+    fraud_how_it_works: Optional[str]
+    fraud_warning_signs: list[str]
+    immediate_action: Optional[str]
+    prevention_tip: Optional[str]
+    report_to: list[str]
+    helplines: dict
 
 
 class TransactionHistoryItem(BaseModel):
@@ -127,6 +158,18 @@ class TransactionHistoryItem(BaseModel):
     is_fraud: bool
     fraud_score: float
     verdict: str
+    matched_pattern_id: Optional[str] = None
+    matched_pattern_name: Optional[str] = None
     created_at: datetime
-
     model_config = {"from_attributes": True}
+
+
+class FraudStatsResponse(BaseModel):
+    total_transactions: int
+    fraud_count: int
+    safe_count: int
+    suspicious_count: int
+    fraud_rate_pct: float
+    total_amount_at_risk: float
+    top_fraud_patterns: list[dict]
+    recent_fraud_types: list[str]

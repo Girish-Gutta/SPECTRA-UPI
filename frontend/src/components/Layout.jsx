@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, ShieldCheck, History,
-  User, LogOut, Zap, Menu, X
+  User, LogOut, Zap, Menu, X, ShieldAlert
 } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/check',     icon: ShieldCheck,     label: 'Fraud Check' },
   { to: '/history',   icon: History,         label: 'History' },
+  { to: '/awareness', icon: ShieldAlert,     label: 'Awareness' },
   { to: '/profile',   icon: User,            label: 'Profile' },
 ]
 

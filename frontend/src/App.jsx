@@ -2,15 +2,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
-import Landing     from './pages/Landing'
-import Login       from './pages/Login'
-import Register    from './pages/Register'
-import Dashboard   from './pages/Dashboard'
-import FraudCheck  from './pages/FraudCheck'
-import History     from './pages/History'
-import Profile     from './pages/Profile'
-import NotFound    from './pages/NotFound'
-import Layout      from './components/Layout'
+import Landing        from './pages/Landing'
+import Login          from './pages/Login'
+import Register       from './pages/Register'
+import Dashboard      from './pages/Dashboard'
+import FraudCheck     from './pages/FraudCheck'
+import History        from './pages/History'
+import Profile        from './pages/Profile'
+import FraudAwareness from './pages/FraudAwareness'
+import NotFound       from './pages/NotFound'
+import Layout         from './components/Layout'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -39,16 +40,15 @@ export default function App() {
           }}
         />
         <Routes>
-          {/* Public */}
           <Route path="/"         element={<Landing />} />
           <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-          {/* Protected — wrapped in shared Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard"  element={<Dashboard />} />
             <Route path="/check"      element={<FraudCheck />} />
             <Route path="/history"    element={<History />} />
+            <Route path="/awareness"  element={<FraudAwareness />} />
             <Route path="/profile"    element={<Profile />} />
           </Route>
 

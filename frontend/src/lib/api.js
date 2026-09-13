@@ -34,9 +34,11 @@ export const authAPI = {
 
 // ── Transactions ──────────────────────────────────────────────────────────
 export const txAPI = {
-  check:   (data)                      => api.post('/transactions/check', data),
-  history: (limit = 50, offset = 0)    => api.get(`/transactions?limit=${limit}&offset=${offset}`),
-  delete:  (id)                        => api.delete(`/transactions/${id}`),
+  check:    (data)                   => api.post('/transactions/check', data),
+  history:  (limit = 50, offset = 0) => api.get(`/transactions?limit=${limit}&offset=${offset}`),
+  stats:    ()                       => api.get('/transactions/stats'),
+  delete:   (id)                     => api.delete(`/transactions/${id}`),
+  patterns: ()                       => api.get('/fraud-patterns'),
 }
 
 export default api
