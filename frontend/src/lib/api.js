@@ -1,7 +1,13 @@
 import axios from 'axios'
 
+// In dev: Vite proxy forwards /api → localhost:8000
+// In prod: set VITE_API_URL to your deployed backend URL (e.g. https://spectra-upi-backend.onrender.com)
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
+  : '/api/v1'
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 
