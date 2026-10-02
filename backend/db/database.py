@@ -7,9 +7,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Base
 import os
+from pathlib import Path
 
-# SQLite for development — swap DATABASE_URL env var for PostgreSQL in production
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./spectra_upi.db")
+# Absolute path so the DB always lands inside backend/ regardless of launch directory
+_DB_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_DB = f"sqlite:///{_DB_DIR / 'spectra_upi.db'}"
+
+# Swap DATABASE_URL env var for PostgreSQL in production
+DATABASE_URL = os.getenv("DATABASE_URL", _DEFAULT_DB)
 
 # SQLite needs connect_args; PostgreSQL doesn't — handle both
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
