@@ -37,7 +37,7 @@ export default function Landing() {
         <h1 className="text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
           Detect UPI Fraud
           <br />
-          <span className="bg-gradient-to-r from-brand-400 to-purple-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-brand-400 to-amber-400 bg-clip-text text-transparent">
             Before It Happens
           </span>
         </h1>
@@ -83,7 +83,7 @@ export default function Landing() {
 
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="card text-center bg-gradient-to-br from-brand-900/40 to-purple-900/20 border-brand-500/20">
+        <div className="card text-center bg-gradient-to-br from-brand-900/40 to-amber-900/20 border-brand-500/20">
           <h2 className="text-3xl font-bold mb-3">Ready to protect your payments?</h2>
           <p className="text-white/50 mb-8">Free to use. No credit card required.</p>
           <Link to="/register" className="btn-primary px-10 py-3 text-base inline-block">

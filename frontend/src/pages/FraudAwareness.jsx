@@ -124,7 +124,7 @@ export default function FraudAwareness() {
       </div>
 
       {/* Helpline banner */}
-      <div className="card bg-gradient-to-r from-brand-900/30 to-purple-900/20 border-brand-500/20">
+      <div className="card bg-gradient-to-r from-brand-900/30 to-amber-900/20 border-brand-500/20">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="text-xs font-bold text-brand-400 uppercase tracking-wide mb-1">Emergency Helplines</div>

@@ -1,8 +1,13 @@
 """
 backend/api/predictor.py  (v2 — beast mode)
 Loads v2 model, runs prediction, passes to explainer for full analysis.
+
+Note: the StandardScaler is loaded from a plain JSON artifact (mean/scale)
+and applied with NumPy. This keeps the runtime free of sklearn/scipy, which
+can be blocked by OS application-control policies on some machines.
 """
 
+import json
 import joblib
 import numpy as np
 from pathlib import Path
@@ -10,15 +15,34 @@ from .explainer import explain, ExplainedResult
 
 _BASE = Path(__file__).resolve().parent.parent / "models"
 
+
+class NumPyScaler:
+    """Drop-in replacement for sklearn.preprocessing.StandardScaler.transform."""
+
+    def __init__(self, mean, scale):
+        self.mean_ = np.asarray(mean, dtype=float)
+        self.scale_ = np.asarray(scale, dtype=float)
+
+    def transform(self, X):
+        X = np.asarray(X, dtype=float)
+        return (X - self.mean_) / self.scale_
+
+
+def _load_scaler(base_name):
+    with open(_BASE / f"{base_name}.json", encoding="utf-8") as f:
+        data = json.load(f)
+    return NumPyScaler(data["mean"], data["scale"])
+
+
 # Load v2 artifacts (fall back to v1 if v2 not found)
 try:
     _model    = joblib.load(_BASE / "fraud_model_v2.pkl")
-    _scaler   = joblib.load(_BASE / "scaler_v2.pkl")
+    _scaler   = _load_scaler("scaler_v2")
     _features = joblib.load(_BASE / "feature_columns_v2.pkl")
     _version  = "v2"
 except FileNotFoundError:
     _model    = joblib.load(_BASE / "fraud_model.pkl")
-    _scaler   = joblib.load(_BASE / "scaler.pkl")
+    _scaler   = _load_scaler("scaler")
     _features = joblib.load(_BASE / "feature_columns.pkl")
     _version  = "v1"
 
