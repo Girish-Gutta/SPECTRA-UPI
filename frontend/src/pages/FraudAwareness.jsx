@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ShieldAlert, ChevronDown, ChevronUp, Phone, ExternalLink, RefreshCw } from 'lucide-react'
-import axios from 'axios'
+import { ShieldAlert, ChevronDown, ChevronUp, Phone, ExternalLink, RefreshCw, Gavel } from 'lucide-react'
+import { publicContentAPI } from '../lib/api'
 
 const RISK_STYLE = {
   CRITICAL: { border: 'border-red-500/30',    bg: 'bg-red-950/20',    badge: 'bg-red-500/15 text-red-400 border-red-500/30',    dot: 'bg-red-500' },
@@ -9,8 +9,8 @@ const RISK_STYLE = {
 }
 
 const PATTERN_ICONS = {
-  sim: '📱', collect: '💸', qr: '🎭', otp: '🎣',
-  marketplace: '🛒', kyc: '🏦', lottery: '💰', remote: '⚡'
+  'FP-001': '📱', 'FP-002': '💸', 'FP-003': '🎭', 'FP-004': '🎣',
+  'FP-005': '🛒', 'FP-006': '🏦', 'FP-007': '💰', 'FP-008': '⚡'
 }
 
 function PatternCard({ pattern }) {
@@ -90,19 +90,21 @@ function PatternCard({ pattern }) {
 
 export default function FraudAwareness() {
   const [patterns, setPatterns] = useState([])
-  const [helplines, setHelplines] = useState({})
+  const [laws, setLaws] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
-    const token = localStorage.getItem('spectra_token')
-    axios.get('/api/v1/fraud-patterns', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    }).then(r => {
-      setPatterns(r.data.patterns || [])
-      setHelplines(r.data.helplines || {})
-    }).catch(() => {
-      // Fallback: show static message
-    }).finally(() => setLoading(false))
+    let alive = true
+    publicContentAPI.awareness()
+      .then(res => {
+        if (!alive) return
+        setPatterns(res.data.patterns || [])
+        setLaws(res.data.laws || [])
+      })
+      .catch(() => { if (alive) setLoadError('Could not load the awareness library. Please refresh.') })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
   }, [])
 
   const byCriticality = [...patterns].sort((a, b) => {
@@ -111,7 +113,7 @@ export default function FraudAwareness() {
   })
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-6 animate-fade-in">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-3">
@@ -122,6 +124,10 @@ export default function FraudAwareness() {
           8 documented UPI fraud patterns from RBI/NPCI advisories — know them before you encounter them
         </p>
       </div>
+
+      {loadError && (
+        <div className="rounded-xl border border-red-500/25 bg-red-950/20 px-4 py-3 text-sm text-red-300">{loadError}</div>
+      )}
 
       {/* Helpline banner */}
       <div className="card bg-gradient-to-r from-brand-900/30 to-amber-900/20 border-brand-500/20">
@@ -169,6 +175,21 @@ export default function FraudAwareness() {
             {byCriticality.map(p => <PatternCard key={p.id} pattern={p} />)}
           </div>
       }
+
+      {/* Laws */}
+      {laws.length > 0 && (
+        <div className="card">
+          <div className="text-sm font-bold text-brand-400 mb-3 flex items-center gap-2"><Gavel size={15} /> Legal framework</div>
+          <div className="space-y-3">
+            {laws.map(law => (
+              <div key={law.id}>
+                <div className="text-sm font-medium text-white/80">{law.act} · {law.section}</div>
+                <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{law.summary}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Golden rules */}
       <div className="card border-amber-500/20 bg-amber-950/10">

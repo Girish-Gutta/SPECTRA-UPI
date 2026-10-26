@@ -5,6 +5,8 @@ passlib[bcrypt]==1.7.4
 bcrypt<4.1.0
 python-multipart==0.0.9
 sqlalchemy==2.0.35
+alembic==1.13.3
+slowapi==0.1.10
 pandas==2.2.3
 scikit-learn==1.5.2
 xgboost==2.1.1
@@ -12,3 +14,4 @@ imbalanced-learn==0.12.3
 joblib==1.4.2
 pydantic==2.9.2
 pydantic-settings==2.5.2
+psycopg2-binary==2.9.10

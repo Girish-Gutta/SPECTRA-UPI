@@ -42,9 +42,10 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
         phone=body.phone, hashed_password=hash_password(body.password),
     )
     db.add(user); db.commit(); db.refresh(user)
-    token = create_access_token({"sub": user.id})
+    token = create_access_token({"sub": user.id, "role": user.role or "user"})
     return TokenResponse(access_token=token, user_id=user.id,
-                         full_name=user.full_name, email=user.email)
+                         full_name=user.full_name, email=user.email,
+                         role=user.role or "user")
 
 
 @router.post("/auth/login", response_model=TokenResponse)
@@ -54,9 +55,10 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         user = db.query(User).filter(User.phone == body.identifier).first()
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(401, "Invalid credentials")
-    token = create_access_token({"sub": user.id})
+    token = create_access_token({"sub": user.id, "role": user.role or "user"})
     return TokenResponse(access_token=token, user_id=user.id,
-                         full_name=user.full_name, email=user.email)
+                         full_name=user.full_name, email=user.email,
+                         role=user.role or "user")
 
 
 @router.get("/auth/me", response_model=UserResponse)

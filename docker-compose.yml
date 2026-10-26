@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      # Override these in a local .env file or your shell before deploying.
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-string}
+      REPORTER_HASH_SALT: ${REPORTER_HASH_SALT:-change-me-to-a-random-value}
+      DATABASE_URL: sqlite:////data/spectra_upi.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      # Set to false when you configure Turnstile for production.
+      CAPTCHA_DISABLED: ${CAPTCHA_DISABLED:-true}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-true}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-true}
+      EXTERNAL_CHECKS_ENABLED: ${EXTERNAL_CHECKS_ENABLED:-false}
+    volumes:
+      - spectra-data:/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty means "same origin", proxied by nginx.
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  spectra-data:

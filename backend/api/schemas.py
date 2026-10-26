@@ -50,6 +50,7 @@ class TokenResponse(BaseModel):
     user_id: int
     full_name: str
     email: str
+    role: str = "user"
 
 
 class UserResponse(BaseModel):
@@ -57,6 +58,7 @@ class UserResponse(BaseModel):
     full_name: str
     email: str
     phone: str
+    role: str = "user"
     created_at: datetime
     model_config = {"from_attributes": True}
 

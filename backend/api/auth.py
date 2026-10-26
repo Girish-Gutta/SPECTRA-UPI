@@ -51,6 +51,8 @@ def decode_token(token: str) -> dict:
 
 # ── FastAPI dependency — get current logged-in user ────────────────────────
 bearer_scheme = HTTPBearer()
+optional_bearer_scheme = HTTPBearer(auto_error=False)
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
@@ -68,3 +70,40 @@ def get_current_user(
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found or inactive")
     return user
+
+
+def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """Return the logged-in user if a valid token is present, else None.
+
+    Used by anonymous-friendly endpoints such as report submission. An invalid
+    token is treated as anonymous rather than blocking the submission.
+    """
+    if credentials is None:
+        return None
+    try:
+        payload = decode_token(credentials.credentials)
+        user_id = int(payload.get("sub"))
+    except (HTTPException, ValueError, TypeError):
+        return None
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_active:
+        return None
+    return user
+
+
+def require_roles(*roles: str):
+    """Dependency factory for moderator/admin-only routes."""
+    allowed = set(roles)
+
+    def dependency(current_user: User = Depends(get_current_user)) -> User:
+        if (current_user.role or "user") not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Moderator or admin role required",
+            )
+        return current_user
+
+    return dependency

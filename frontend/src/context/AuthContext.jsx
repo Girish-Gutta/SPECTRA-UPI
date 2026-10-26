@@ -7,7 +7,8 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Rehydrate from localStorage on app load
+  // Rehydrate from localStorage on app load, then refresh the profile so an
+  // existing session picks up a newly granted moderator/admin role.
   useEffect(() => {
     const token = localStorage.getItem('spectra_token')
     const saved = localStorage.getItem('spectra_user')
@@ -15,6 +16,16 @@ export function AuthProvider({ children }) {
       try { setUser(JSON.parse(saved)) } catch {}
     }
     setLoading(false)
+
+    if (token) {
+      authAPI.me()
+        .then(res => {
+          const updated = { ...(saved ? JSON.parse(saved) : {}), ...res.data }
+          localStorage.setItem('spectra_user', JSON.stringify(updated))
+          setUser(updated)
+        })
+        .catch(() => { /* offline or expired: keep the cached session */ })
+    }
   }, [])
 
   const login = async (identifier, password) => {

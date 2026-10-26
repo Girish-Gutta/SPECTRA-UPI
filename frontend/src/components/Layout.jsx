@@ -2,7 +2,8 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, ShieldCheck, History,
-  User, LogOut, Zap, Menu, X, ShieldAlert
+  User, LogOut, Zap, Menu, X, ShieldAlert,
+  KeyRound, ScanSearch, Gavel
 } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
@@ -12,6 +13,8 @@ const navItems = [
   { to: '/check',     icon: ShieldCheck,     label: 'Fraud Check' },
   { to: '/history',   icon: History,         label: 'History' },
   { to: '/awareness', icon: ShieldAlert,     label: 'Awareness' },
+  { to: '/developer', icon: KeyRound,        label: 'API keys' },
+  { to: '/',          icon: ScanSearch,      label: 'Public lookup' },
   { to: '/profile',   icon: User,            label: 'Profile' },
 ]
 
@@ -66,6 +69,21 @@ export default function Layout() {
             {label}
           </NavLink>
         ))}
+        {user?.role && user.role !== 'user' && (
+          <NavLink
+            to="/admin"
+            onClick={() => mobile && setMobileOpen(false)}
+            className={({ isActive }) => clsx(
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mt-2',
+              isActive
+                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20'
+                : 'text-amber-200/60 hover:text-amber-200 hover:bg-amber-500/5'
+            )}
+          >
+            <Gavel size={18} />
+            Moderation
+          </NavLink>
+        )}
       </nav>
 
       {/* User + Logout */}

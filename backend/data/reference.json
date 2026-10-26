@@ -1,0 +1,65 @@
+{
+  "_comment": "VERIFY all legal references and numbers against official sources before release.",
+  "laws": [
+    {
+      "id": "it-act-66c",
+      "act": "Information Technology Act, 2000",
+      "section": "66C",
+      "summary": "Punishment for identity theft — fraudulent or dishonest use of another person's electronic signature, password or other unique identification feature."
+    },
+    {
+      "id": "it-act-66d",
+      "act": "Information Technology Act, 2000",
+      "section": "66D",
+      "summary": "Punishment for cheating by personation by using a computer resource or communication device."
+    },
+    {
+      "id": "bns-318",
+      "act": "Bharatiya Nyaya Sanhita, 2023",
+      "section": "318",
+      "summary": "Cheating — deceiving a person to deliver property or consent to the retention of property."
+    },
+    {
+      "id": "bns-319",
+      "act": "Bharatiya Nyaya Sanhita, 2023",
+      "section": "319",
+      "summary": "Cheating by personation — pretending to be another person in order to deceive."
+    }
+  ],
+  "helplines": [
+    {
+      "id": "national-cyber-helpline",
+      "name": "National Cyber Crime Helpline",
+      "number": "1930",
+      "url": null,
+      "description": "24x7 national helpline for reporting cyber fraud and financial fraud in India.",
+      "display_order": 1
+    },
+    {
+      "id": "cybercrime-portal",
+      "name": "National Cyber Crime Reporting Portal",
+      "number": null,
+      "url": "https://cybercrime.gov.in",
+      "description": "File an online complaint for cybercrime, including UPI and financial fraud.",
+      "display_order": 2
+    },
+    {
+      "id": "bank-upi-app",
+      "name": "Your bank / UPI app",
+      "number": null,
+      "url": null,
+      "description": "Contact your bank or UPI app immediately to block the account, freeze the transaction and raise a dispute.",
+      "display_order": 3
+    }
+  ],
+  "scam_type_law_refs": {
+    "FP-001": ["it-act-66c", "it-act-66d", "bns-318", "bns-319"],
+    "FP-002": ["it-act-66d", "bns-318", "bns-319"],
+    "FP-003": ["it-act-66d", "bns-318", "bns-319"],
+    "FP-004": ["it-act-66c", "it-act-66d", "bns-318", "bns-319"],
+    "FP-005": ["it-act-66d", "bns-318", "bns-319"],
+    "FP-006": ["it-act-66c", "it-act-66d", "bns-318", "bns-319"],
+    "FP-007": ["it-act-66d", "bns-318", "bns-319"],
+    "FP-008": ["it-act-66c", "it-act-66d", "bns-318", "bns-319"]
+  }
+}
